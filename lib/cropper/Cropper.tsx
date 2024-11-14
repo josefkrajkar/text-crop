@@ -1,65 +1,68 @@
-import { useState, useEffect, useRef } from 'react';
+import {useRef, useEffect, useState} from "react";
 
 type TruncatedTextProps = {
   text: string;
 }
 
 export function Cropper({ text }: TruncatedTextProps) {
-  const [displayText, setDisplayText] = useState(text);
-  const spanRef = useRef<HTMLDivElement>(null);
+  const spanRef = useRef<HTMLSpanElement>(null);
+  const [croppedText, setCroppedText] = useState<string>('');
 
   useEffect(() => {
     const spanElement = spanRef.current;
+    if (spanElement) {
+      const spanComputedStyle = getComputedStyle(spanElement);
+      let lineHeight: number | string = spanComputedStyle.lineHeight !== 'normal' ? spanComputedStyle.lineHeight : '1.2'; // Default line-height
+      if (typeof lineHeight === 'string' && lineHeight.includes('px')) {
+        lineHeight = parseInt(lineHeight);
+      } else {
+        lineHeight = +(lineHeight) * 16;
+      }
 
-    if (!spanElement) return;
+      const font = spanComputedStyle.font;
+      const parent = spanElement.parentElement;
+      if (!parent) return;
+      const parentComputedStyle = getComputedStyle(parent);
+      const maxWidth = parseFloat(parentComputedStyle.width);
+      const maxHeight = parseFloat(parentComputedStyle.height);
 
-    const updateText = () => {
-      const computedStyle = getComputedStyle(spanElement);
-      const font = computedStyle.font;
-      const maxWidth = spanElement.parentElement?.clientWidth || 0;
+      if (lineHeight > maxHeight) {
+        return;
+      }
 
       const canvas = document.createElement('canvas');
       const context = canvas.getContext('2d');
 
       if (context) {
         context.font = font;
-        let currentText = text;
 
-        if (context.measureText(currentText).width <= maxWidth) {
-          setDisplayText(currentText);
-          return;
+        if (context.measureText(text).width <= maxWidth) {
+          setCroppedText(text);
         }
 
         const words = text.split(' ');
-
-        for (let i = words.length; i > 0; i--) {
-          currentText = words.slice(0, i).join(' ') + '...';
-          if (context.measureText(currentText).width <= maxWidth) {
-            setDisplayText(currentText);
+        let finalWords = words.slice(0, 0);
+        let wordIndex = 0;
+        let linesCount = 1;
+        while (linesCount * lineHeight <= maxHeight) {
+          for (let i = wordIndex; i < words.length; i++) {
+            const line = words.slice(wordIndex, i).join(' ');
+            if (context.measureText(line + '...').width > maxWidth) {
+              finalWords = words.slice(0, i - 1);
+              wordIndex = i - 1;
+              break;
+            }
+          }
+          if (wordIndex === words.length - 1) {
             break;
           }
+          linesCount++;
         }
 
-        if (context.measureText('...').width > maxWidth) {
-          setDisplayText('');
-        } else if (displayText !== '...') {
-          setDisplayText('...');
-        }
+        setCroppedText(finalWords.join(' ') + '...');
       }
-    };
+    }
+  }, [text]);
 
-    updateText();
-
-    const resizeObserver = new ResizeObserver(() => {
-      updateText();
-    });
-
-    resizeObserver.observe(spanElement);
-
-    return () => {
-      resizeObserver.disconnect();
-    };
-  }, []);
-
-  return <span ref={spanRef}>{displayText}</span>;
+  return <span ref={spanRef}>{croppedText}</span>;
 };
