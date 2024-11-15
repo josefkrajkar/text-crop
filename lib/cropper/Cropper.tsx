@@ -4,13 +4,25 @@ type TruncatedTextProps = {
   text: string;
 }
 
+function debounce(func: (...args: any[]) => void, wait: number) {
+  let timeout: NodeJS.Timeout;
+  return function(...args: any[]) {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func.apply(this, args), wait);
+  };
+}
+
 export function Cropper({ text }: TruncatedTextProps) {
   const spanRef = useRef<HTMLSpanElement>(null);
   const [croppedText, setCroppedText] = useState<string>('');
 
   useEffect(() => {
     const spanElement = spanRef.current;
-    if (spanElement) {
+    if (!spanElement) return;
+    const parent = spanElement.parentElement;
+    if (!parent) return;
+
+    const updateCroppedText = () => {
       const spanComputedStyle = getComputedStyle(spanElement);
       let lineHeight: number | string = spanComputedStyle.lineHeight !== 'normal' ? spanComputedStyle.lineHeight : '1.2'; // Default line-height
       if (typeof lineHeight === 'string' && lineHeight.includes('px')) {
@@ -20,8 +32,6 @@ export function Cropper({ text }: TruncatedTextProps) {
       }
 
       const font = spanComputedStyle.font;
-      const parent = spanElement.parentElement;
-      if (!parent) return;
       const parentComputedStyle = getComputedStyle(parent);
       const maxWidth = parseFloat(parentComputedStyle.width);
       const maxHeight = parseFloat(parentComputedStyle.height);
@@ -59,9 +69,17 @@ export function Cropper({ text }: TruncatedTextProps) {
           linesCount++;
         }
 
-        setCroppedText(finalWords.join(' ') + '...');
+        setCroppedText(finalWords.join(' ') + (finalWords.length === words.length ? '' : '...'));
       }
     }
+
+    const resizeObserver = new ResizeObserver(debounce(updateCroppedText, 300));
+
+    resizeObserver.observe(parent);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
   }, [text]);
 
   return <span ref={spanRef}>{croppedText}</span>;
