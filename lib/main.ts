@@ -1,1 +1,1 @@
-export {Cropper} from "./cropper/Cropper";
+export {TextCropper} from "./cropper/Cropper";
