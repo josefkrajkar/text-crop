@@ -1,50 +1,85 @@
-# React + TypeScript + Vite
+# React Text Cropper
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A React component that automatically crops text to fit within a container's dimensions while maintaining readability. The component intelligently handles text overflow by adding ellipsis and responds to container size changes in real-time.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- ✂️ Automatically crops text to fit container dimensions
+- 🔄 Responsive to container size changes
+- ⚡ Optimized performance with debounced calculations
+- 🎨 Customizable ellipsis
+- 📏 Configurable line height
+- 📦 TypeScript support
+- 🎯 Zero dependencies (except for React)
 
-## Expanding the ESLint configuration
+## Installation
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
-
-- Configure the top-level `parserOptions` property like this:
-
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-});
+```bash
+npm install react-text-cropper
+# or
+yarn add react-text-cropper
 ```
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+## Usage
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react';
+```tsx
+import { TextCropper } from 'react-text-cropper';
 
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-});
+function App() {
+  return (
+    <div style={{ width: '200px', height: '100px' }}>
+      <TextCropper
+        text="Your long text content that needs to be cropped goes here..."
+        className="custom-class"
+        ellipsis="..."
+        defaultLineHeight={1.2}
+        debounceWait={300}
+      />
+    </div>
+  );
+}
 ```
+
+## Props
+
+| Prop                | Type   | Default    | Description                         |
+| ------------------- | ------ | ---------- | ----------------------------------- |
+| `text`              | string | (required) | The text content to be cropped      |
+| `className`         | string | `''`       | Optional CSS class name for styling |
+| `ellipsis`          | string | `'...'`    | Custom ellipsis string              |
+| `defaultLineHeight` | number | `1.2`      | Default line height multiplier      |
+| `debounceWait`      | number | `300`      | Debounce wait time in milliseconds  |
+
+## How It Works
+
+The component:
+
+1. Measures the container's dimensions
+2. Calculates how much text can fit within the available space
+3. Automatically adds ellipsis when text overflows
+4. Recalculates on container size changes
+5. Uses a canvas for text measurements to ensure accuracy
+6. Implements debouncing to optimize performance during resize events
+
+## Development
+
+```bash
+# Install dependencies
+yarn install
+
+# Start development server
+yarn dev
+
+# Build the library
+yarn build
+
+# Run linting
+yarn lint
+
+# Format code
+yarn format
+```
+
+## License
+
+MIT

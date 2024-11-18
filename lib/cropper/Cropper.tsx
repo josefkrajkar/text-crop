@@ -78,7 +78,7 @@ export function TextCropper({
       return;
     }
 
-    const [_, context] = getOrCreateCanvas();
+    const [, context] = getOrCreateCanvas();
     context.font = spanStyle.font;
 
     // If text fits completely, use it as is
